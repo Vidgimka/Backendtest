@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 )
 
@@ -45,6 +46,7 @@ func ReadFileData() []GeoData {
 	var UsersOnline []GeoData
 	if err := json.Unmarshal(data, &UsersOnline); err != nil {
 		panic(err)
+		log.Fatal(err.Error())
 	}
 	fmt.Println(UsersOnline)
 	return UsersOnline
