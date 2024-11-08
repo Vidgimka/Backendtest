@@ -75,8 +75,6 @@ func Init() *gorm.DB {
 	return DB
 }
 
-//var Dbase *gorm.DB
-
 // func GetDB() *gorm.DB { // проверяем подкюченеие к базе данных
 // 	if Dbase == nil {
 // 		Dbase = Init() // проинициализировали бд через Init и присвоили в переменную dbase, так как инициилизация return db
@@ -104,5 +102,5 @@ func main() {
 		 DB.AutoMigrate(&Data{})*/
 	Data := ReadFileData().Data
 	Dbase.Create(&Data)
-	fmt.Println(UsersOnline)
+	//fmt.Println(UsersOnline)
 }
