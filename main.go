@@ -32,11 +32,16 @@ type Data struct {
 	Station_distance float64 `json:"station_distance"`
 }
 
+// чтобы горм правильно определил схему, а именно теблицу DATA
+// так данные в БД используются именно из DATA, остальные поля json не исп.
 type GeoData struct {
 	Status  string `json:"status"`
 	Message string `json:"message"`
 	Data    []Data `json:"data"`
 }
+
+var UsersOnline GeoData // записываем в переменную UsersOnline  данные из тела ответа
+//var UsersOnlineD Data
 
 func ReadFileData() GeoData { // читаем и записываем данные с API
 	URL := "https://svtp.prin.ru:8044/api/events/online-user"
@@ -53,36 +58,49 @@ func ReadFileData() GeoData { // читаем и записываем данны
 			n, err := resp.Body.Read(data) // записываем тело ответа в переменную
 			fmt.Println(string(data[:n]))  //вывод в консоль*/
 	d, _ := io.ReadAll(resp.Body) // читаем данные и возвращаем тело ответа в байтах
-
-	var UsersOnline GeoData // записываем в переменную UsersOnline  данные из тела ответа
 	if err := json.Unmarshal(d, &UsersOnline); err != nil {
-		//panic(err)
 		log.Fatal(err.Error())
 	}
-	//fmt.Println(UsersOnline)
 	return UsersOnline
-
 }
 
-var DB *gorm.DB
-
 func Init() *gorm.DB {
+	var DB *gorm.DB
 	dsn := "host=localhost user=postgres password=postgres dbname=OnlineUsersIist port=5432 sslmode=disable"
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	//gorm.Open("postgres", "user=postgres password=postgres dbname=SvtpPrin sslmode=disable TimeZone=Asia/Shanghai")
-
+	DB, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		fmt.Println("не подключилось к БД")
 	}
-
-	db.AutoMigrate(&Data{})
-	return db
+	DB.AutoMigrate(&Data{})
+	return DB
 }
 
+// func GetDB() *gorm.DB { // проверяем подкюченеие к базе данных
+// 	if Dbase == nil {
+// 		Dbase = Init() // проинициализировали бд через Init и присвоили в переменную dbase, так как инициилизация return db
+// 		var sleep = time.Duration(1)
+// 		for Dbase == nil { // ждем 3 секунды если не подключается
+// 			sleep = sleep * 3
+// 			fmt.Printf("База данных не доступна. Пожождите %d секунды.\n", sleep)
+// 			time.Sleep(sleep * time.Second)
+// 			Dbase = Init() // еще раз кладем базу данных в переменную dbase
+// 		}
+// 	}
+// 	return Dbase
+// }
+
 func main() {
-	//var UsOn GeoData
-	//UsOn = ReadFileData()
-	Init()
-	//fmt.Println(UsOn)
-	//fmt.Println(UsOn)
+	var Dbase *gorm.DB
+	Dbase = Init()
+	/*
+		var DB *gorm.DB
+		// dsn := "host=localhost user=postgres password=postgres dbname=OnlineUsersIist port=5432 sslmode=disable"
+		// DB, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+		// if err != nil {
+		// 	fmt.Println("не подключилось к БД")
+		// }
+		 DB.AutoMigrate(&Data{})*/
+	Data := ReadFileData().Data
+	Dbase.Create(&Data)
+	//fmt.Println(UsersOnline)
 }
